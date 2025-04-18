@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search</title>
+</head>
+
+<body>
+    <h2>Search</h2>
+    <form method="POST">
+        <label for="query">Enter your search query:</label>
+        <input list="search-history" name="query" required>
+        <datalist id="search-history">
+            {% for history in search_history %}
+            <option value="{{ history }}">
+                {% endfor %}
+        </datalist>
+        <br><br>
+        <label for="search_type">Select search type:</label>
+        <select name="search_type" required>
+            <option value="normal">Normal Search</option>
+            <option value="file">File Search</option>
+        </select>
+        <br><br>
+        <button type="submit">Search</button>
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul class="flashes">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    {% if results %}
+    <h3>Results:</h3>
+    <ul>
+        {% for url, title in results %}
+        <li>
+            <a href="{{ url }}" target="_blank" class="search-result-link">{{ title }}</a>
+            <button class="snapshot-button" data-url="{{ url }}">网页快照</button>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const snapshotButtons = document.querySelectorAll('.snapshot-button');
+            snapshotButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const url = this.getAttribute('data-url');
+                    console.log('Snapshot button clicked:', url);
+                    // 使用 AJAX 请求处理网页快照
+                    fetch(`/home?url=${encodeURIComponent(url)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.open(data.file_url, '_blank');
+                            } else {
+                                alert(data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
